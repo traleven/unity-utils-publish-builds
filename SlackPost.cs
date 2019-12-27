@@ -35,6 +35,8 @@ public static class SlackPost
 		var archive = new ICSharpCode.SharpZipLib.Zip.FastZip();
 		{
 			archive.CreateEmptyDirectories = true;
+			archive.RestoreAttributesOnExtract = true;
+			archive.RestoreDateTimeOnExtract = true;
 			archive.CreateZip(zipName, pathToBuild, true, "");
 		}
 
