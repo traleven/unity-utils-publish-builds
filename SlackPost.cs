@@ -19,6 +19,13 @@ public static class SlackPost
 	[PostProcessBuild(1010)]
 	public static void PostToSlack(BuildTarget target, string pathToBuiltProject)
 	{
+		if (target != BuildTarget.StandaloneLinux64 
+		    && target != BuildTarget.StandaloneLinux 
+		    && target != BuildTarget.StandaloneLinuxUniversal)
+		{
+			return;
+		}
+		
 		SlackCredentials credentials = JsonUtility.FromJson<SlackCredentials>(File.ReadAllText("slack.json"));
 
 		string version = PlayerSettings.bundleVersion;
