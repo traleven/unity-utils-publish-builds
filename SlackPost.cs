@@ -19,12 +19,14 @@ public static class SlackPost
 	[PostProcessBuild(1010)]
 	public static void PostToSlack(BuildTarget target, string pathToBuiltProject)
 	{
+#pragma warning disable CS0618
 		if (target != BuildTarget.StandaloneLinux64 
 		    && target != BuildTarget.StandaloneLinux 
 		    && target != BuildTarget.StandaloneLinuxUniversal)
 		{
 			return;
 		}
+#pragma warning restore CS0618
 		
 		SlackCredentials credentials = JsonUtility.FromJson<SlackCredentials>(File.ReadAllText("slack.json"));
 
@@ -32,7 +34,7 @@ public static class SlackPost
 		string buildGuid = GUID.Generate().ToString().Substring(0, 6);
 		string pathToBuild = Path.GetDirectoryName(pathToBuiltProject);
 		string dir = Path.GetDirectoryName(pathToBuild);
-		string zipName = Path.Combine(dir, Path.GetFileName(pathToBuild) + ".zip");
+		string zipName = Path.Combine(dir, $"{Path.GetFileName(pathToBuild)}.{version}.zip");
 
 		if (File.Exists(zipName))
 		{
