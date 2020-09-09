@@ -14,6 +14,7 @@ public static class SlackPost
 		public string oauthToken;
 		public string uploadEndpoint;
 		public string channel;
+		public string buildPath;
 	}
 
 	[PostProcessBuild(1010)]
@@ -81,10 +82,38 @@ public static class SlackPost
 			Debug.Log($"Posted to Slack\n{uploadRequest.downloadHandler.text}");
 	}
 
-	[MenuItem("Lucid/Post to Slack")]
+	private static IEnumerator SendWebRequest(SlackCredentials credentials, string message)
+	{
+		UnityWebRequest uploadRequest = UnityWebRequest.Post(credentials.uploadEndpoint, new List<IMultipartFormSection> {
+			new MultipartFormDataSection("channels", credentials.channel),
+			new MultipartFormDataSection("initial_comment", message),
+		});
+
+		uploadRequest.SetRequestHeader("Authorization", $"Bearer {credentials.oauthToken}");
+
+		uploadRequest.SendWebRequest();
+
+		while (!uploadRequest.isDone)
+			yield return null;
+
+		if (uploadRequest.isNetworkError)
+			Debug.Log(uploadRequest.error);
+		else
+			Debug.Log($"Posted to Slack\n{uploadRequest.downloadHandler.text}");
+	}
+
+	[MenuItem("traleven/Send build to Slack")]
     public static void PostToSlack()
 	{
-		string filePath = Path.Combine("/Users/diplomat/Projects/Lucid/Nextmotion/NRS", "Builds", "NRS-Linux", "NRS-Main.x86_64");
-		PostToSlack(BuildTarget.StandaloneLinux64, filePath);
+		SlackCredentials credentials = JsonUtility.FromJson<SlackCredentials>(File.ReadAllText("slack.json"));
+		PostToSlack(BuildTarget.StandaloneLinux64, credentials.buildPath);
 	}
+    
+    [MenuItem("traleven/Test Slack")]
+    public static void TestSlack()
+    {
+	    SlackCredentials credentials = JsonUtility.FromJson<SlackCredentials>(File.ReadAllText("slack.json"));
+	    credentials.uploadEndpoint = "https://slack.com/api/auth.test";
+	    EditorCoroutine.StartCoroutine(SendWebRequest(credentials, $"Test"));
+    }
 }
